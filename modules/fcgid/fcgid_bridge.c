@@ -82,14 +82,16 @@ static fcgid_procnode *apply_free_procnode(request_rec *r,
 
     fcgid_server_conf *sconf = ap_get_module_config(r->server->module_config,
                                                     &fcgid_module);
-    int g_total_process = proctable_count_all_nonfree_nodes();
-    /* Total process count higher than the global server limit? */
-    if (g_total_process >= sconf->max_process_count) {
-        ap_log_rerror(APLOG_MARK, APLOG_WARNING, 0, r,
-                      "mod_fcgid: %s server total process count %d >= %d, "
-                      "early skip of the spawn request",
-                      cmdline, g_total_process, sconf->max_process_count);
-        *reached_global_limit = 1; // true
+    if (sconf->max_process_used_no_wait_enable) {
+        int g_total_process = proctable_count_all_nonfree_nodes();
+        /* Total process count higher than the global server limit? */
+        if (g_total_process >= sconf->max_process_count) {
+            ap_log_rerror(APLOG_MARK, APLOG_WARNING, 0, r,
+                          "mod_fcgid: %s server total process count %d >= %d, "
+                          "early skip of the spawn request",
+                          cmdline, g_total_process, sconf->max_process_count);
+            *reached_global_limit = 1; // true
+        }
     }
 
     proctable_unlock(r);

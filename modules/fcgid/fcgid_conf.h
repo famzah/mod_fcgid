@@ -69,6 +69,7 @@ typedef struct {
     int error_scan_interval;
     int idle_scan_interval;
     int max_process_count;
+    int max_process_used_no_wait_enable;
     int php_fix_pathinfo_enable;
     char *shmname_path;
     char *sockname_prefix;
@@ -207,6 +208,9 @@ const char *set_spawnscore_uplimit(cmd_parms * cmd, void *dummy,
                                    const char *arg);
 
 const char *set_max_process(cmd_parms * cmd, void *dummy, const char *arg);
+
+const char *set_max_process_used_no_wait_enable(cmd_parms * cmd, void *dummy,
+                                        const char *arg);
 
 const char *set_max_class_process(cmd_parms * cmd, void *dummy,
                                   const char *arg);

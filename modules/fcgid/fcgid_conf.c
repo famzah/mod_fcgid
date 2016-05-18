@@ -89,6 +89,7 @@ void *create_fcgid_server_config(apr_pool_t * p, server_rec * s)
     /* Redundant; pcalloc creates this structure;
      * config->default_init_env = NULL;
      * config->pass_headers = NULL;
+     * config->max_process_used_no_wait_enable = 0;
      * config->php_fix_pathinfo_enable = 0;
      * config->*_set = 0;
      */
@@ -465,6 +466,22 @@ const char *set_max_process(cmd_parms * cmd, void *dummy, const char *arg)
     }
 
     config->max_process_count = atol(arg);
+    return NULL;
+}
+
+const char *set_max_process_used_no_wait_enable(cmd_parms * cmd, void *dummy,
+                                        const char *arg)
+{
+    server_rec *s = cmd->server;
+    fcgid_server_conf *config =
+        ap_get_module_config(s->module_config, &fcgid_module);
+    const char *err = ap_check_cmd_context(cmd, GLOBAL_ONLY);
+
+    if (err != NULL) {
+        return err;
+    }
+
+    config->max_process_used_no_wait_enable = atol(arg);
     return NULL;
 }
 
