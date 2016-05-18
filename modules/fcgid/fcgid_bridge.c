@@ -35,7 +35,8 @@
 #define FCGID_BRIGADE_CLEAN_STEP 32
 
 static fcgid_procnode *apply_free_procnode(request_rec *r,
-                                           fcgid_command * command)
+                                           fcgid_command * command,
+                                           int * reached_global_limit)
 {
     /* Scan idle list, find a node match inode, deviceid and groupid
        If there is no one there, return NULL */
@@ -50,6 +51,8 @@ static fcgid_procnode *apply_free_procnode(request_rec *r,
     proc_table = proctable_get_table_array();
     previous_node = proctable_get_idle_list();
     busy_list_header = proctable_get_busy_list();
+
+    *reached_global_limit = 0; // false
 
     proctable_lock(r);
     current_node = &proc_table[previous_node->next_index];
@@ -76,6 +79,19 @@ static fcgid_procnode *apply_free_procnode(request_rec *r,
 
         current_node = next_node;
     }
+
+    fcgid_server_conf *sconf = ap_get_module_config(r->server->module_config,
+                                                    &fcgid_module);
+    int g_total_process = proctable_count_all_nonfree_nodes();
+    /* Total process count higher than the global server limit? */
+    if (g_total_process >= sconf->max_process_count) {
+        ap_log_rerror(APLOG_MARK, APLOG_WARNING, 0, r,
+                      "mod_fcgid: %s server total process count %d >= %d, "
+                      "early skip of the spawn request",
+                      cmdline, g_total_process, sconf->max_process_count);
+        *reached_global_limit = 1; // true
+    }
+
     proctable_unlock(r);
 
     /* Found nothing */
@@ -423,6 +439,7 @@ handle_request(request_rec * r, int role, fcgid_cmd_conf *cmd_conf,
     fcgid_bucket_ctx *bucket_ctx;
     int i, j, cond_status;
     const char *location = NULL;
+    int reached_global_limit;
 
     bucket_ctx = apr_pcalloc(r->pool, sizeof(*bucket_ctx));
 
@@ -441,9 +458,13 @@ handle_request(request_rec * r, int role, fcgid_cmd_conf *cmd_conf,
                 fcgi_request.cmdopts.ipc_comm_timeout;
 
             /* Apply a process slot */
-            bucket_ctx->procnode = apply_free_procnode(r, &fcgi_request);
+            bucket_ctx->procnode = apply_free_procnode(r, &fcgi_request,
+                                                       &reached_global_limit);
             if (bucket_ctx->procnode)
                 break;
+            if (reached_global_limit) {
+                return HTTP_SERVICE_UNAVAILABLE;
+            }
 
             /* Avoid sleeping the very first time through if there are no
                busy processes; the problem is just that we haven't spawned
@@ -451,9 +472,13 @@ handle_request(request_rec * r, int role, fcgid_cmd_conf *cmd_conf,
             if (i > 0 || j > 0 || count_busy_processes(r, &fcgi_request)) {
                 apr_sleep(apr_time_from_sec(1));
 
-                bucket_ctx->procnode = apply_free_procnode(r, &fcgi_request);
+                bucket_ctx->procnode = apply_free_procnode(r, &fcgi_request,
+                                                       &reached_global_limit);
                 if (bucket_ctx->procnode)
                     break;
+                if (reached_global_limit) {
+                    return HTTP_SERVICE_UNAVAILABLE;
+                }
             }
 
             /* Send a spawn request if I can't get a process slot */

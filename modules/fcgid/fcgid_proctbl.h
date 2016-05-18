@@ -92,6 +92,9 @@ fcgid_procnode *proctable_get_table_array(void);
 size_t proctable_get_table_size(void);
 fcgid_global_share *proctable_get_globalshare(void);
 
+size_t proctable_count_nodes(fcgid_procnode * header);
+size_t proctable_count_all_nonfree_nodes(void);
+
 void proctable_pm_lock(server_rec *s);
 void proctable_pm_unlock(server_rec *s);
 void proctable_lock(request_rec *r);

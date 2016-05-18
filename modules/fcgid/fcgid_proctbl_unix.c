@@ -240,6 +240,32 @@ size_t proctable_get_table_size(void)
     return g_table_size;
 }
 
+size_t proctable_count_nodes(fcgid_procnode * header)
+{
+    fcgid_procnode *proc_table, *current_node;
+    size_t count = 0;
+
+    proc_table = proctable_get_table_array();
+    current_node = &proc_table[header->next_index];
+    while (current_node != proc_table) {
+        current_node = &proc_table[current_node->next_index];
+        ++count;
+    }
+
+    return count;
+}
+
+size_t proctable_count_all_nonfree_nodes(void)
+{
+    size_t count = 0;
+
+    count += proctable_count_nodes(proctable_get_idle_list());
+    count += proctable_count_nodes(proctable_get_busy_list());
+    count += proctable_count_nodes(proctable_get_error_list());
+
+    return count;
+}
+
 void proctable_lock(request_rec *r)
 {
     /* Lock error is a fatal error */

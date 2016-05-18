@@ -263,6 +263,8 @@ static void scan_idlelist_zombie(server_rec * main_server)
         previous_node->next_index = check_list_header->next_index;
         proctable_pm_unlock(main_server);
     }
+
+    assert_proctable_count(main_server);
 }
 
 static apr_time_t lasterrorscan = 0;
@@ -352,6 +354,8 @@ static void scan_errorlist(server_rec * main_server)
     }
     previous_node->next_index = temp_error_header.next_index;
     proctable_pm_unlock(main_server);
+
+    assert_proctable_count(main_server);
 
     if (graceful_terminations) {
         ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, main_server,

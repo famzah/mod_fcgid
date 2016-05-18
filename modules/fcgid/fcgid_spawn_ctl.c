@@ -132,16 +132,47 @@ void spawn_control_init(server_rec * main_server, apr_pool_t * configpool)
 }
 
 void
+assert_proctable_count(server_rec * main_server)
+{
+    size_t dyn_count;
+    
+    proctable_pm_lock(main_server);
+    dyn_count = proctable_count_all_nonfree_nodes();
+    proctable_pm_unlock(main_server);
+
+    if (g_total_process != dyn_count) {
+        ap_log_error(APLOG_MARK, APLOG_CRIT, 0, main_server,
+                     "assert_proctable_count() fail: %d vs. %d",
+                     g_total_process, dyn_count);
+    }
+}
+
+void
 register_termination(server_rec * main_server, fcgid_procnode * procnode)
 {
     register_life_death(main_server, procnode, REGISTER_DEATH);
+
     g_total_process--;
+
+    /*
+     * We assert in the functions which call proc_wait_process(),
+     * because proc_wait_process() is the only caller of register_termination(),
+     * and because those functions use temporary proctables.
+     * In the end of those functions everything must assert properly though.
+     *
+     * Those functions are scan_errorlist() and scan_idlelist_zombie().
+     */
+    //assert_proctable_count(main_server);
 }
 
 void register_spawn(server_rec * main_server, fcgid_procnode * procnode)
 {
     register_life_death(main_server, procnode, REGISTER_LIFE);
+
     g_total_process++;
+
+    // assert now since the procnode is already linked to the "idle" list
+    assert_proctable_count(main_server);
 }
 
 /*
