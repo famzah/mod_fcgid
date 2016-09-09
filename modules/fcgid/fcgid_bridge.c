@@ -71,6 +71,11 @@ static fcgid_procnode *apply_free_procnode(request_rec *r,
             current_node->next_index = busy_list_header->next_index;
             busy_list_header->next_index = current_node - proc_table;
 
+            ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
+                          "mod_fcgid: apply_free_procnode(): '%s' successfully found a free slot; "
+                          "no need to spawn a new one",
+                          cmdline);
+
             proctable_unlock(r);
             return current_node;
         }
@@ -87,11 +92,25 @@ static fcgid_procnode *apply_free_procnode(request_rec *r,
         /* Total process count higher than the global server limit? */
         if (g_total_process >= sconf->max_process_count) {
             ap_log_rerror(APLOG_MARK, APLOG_WARNING, 0, r,
-                          "mod_fcgid: %s server total process count %d >= %d, "
-                          "early skip of the spawn request",
+                          "mod_fcgid: apply_free_procnode(): '%s' server total process count %d >= %d, "
+                          "early skip of the spawn request because "
+                          "FcgidMaxProcessesUsedNoWait is enabled",
                           cmdline, g_total_process, sconf->max_process_count);
             *reached_global_limit = 1; // true
+        } else {
+            ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
+                          "mod_fcgid: apply_free_procnode(): '%s' failed to find a free slot; "
+                          "FcgidMaxProcessesUsedNoWait is enabled but there is a room "
+                          "for more processes to be spawned (total=%d, max=%d); "
+                          "a new spawn will be requested",
+                          cmdline, g_total_process, sconf->max_process_count);
         }
+    } else {
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
+                      "mod_fcgid: apply_free_procnode(): '%s' failed to find a free slot "
+                      "and FcgidMaxProcessesUsedNoWait is disabled; "
+                      "a new spawn will be requested",
+                      cmdline);
     }
 
     proctable_unlock(r);
