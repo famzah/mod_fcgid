@@ -68,8 +68,6 @@ typedef struct {
     int busy_scan_interval;
     int error_scan_interval;
     int idle_scan_interval;
-    int max_process_count;
-    int max_process_used_no_wait_enable;
     int php_fix_pathinfo_enable;
     char *shmname_path;
     char *sockname_prefix;
@@ -86,6 +84,10 @@ typedef struct {
      * scalar values have corresponding _set field to aid merging
      */
     apr_table_t *default_init_env;
+    int max_process_count; // "global only" but we use its main_server value in a "request_rec"
+    int max_process_count_set;
+    int max_process_used_no_wait_enable; // "global only" but we use its main_server value in a "request_rec"
+    int max_process_used_no_wait_enable_set;
     int ipc_comm_timeout;
     int ipc_comm_timeout_set;
     int ipc_connect_timeout;

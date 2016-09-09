@@ -159,6 +159,8 @@ void *merge_fcgid_server_config(apr_pool_t * p, void *basev, void *locv)
     MERGE_SCALAR(base, local, merged, ipc_connect_timeout);
     MERGE_SCALAR(base, local, merged, max_mem_request_len);
     MERGE_SCALAR(base, local, merged, max_request_len);
+    MERGE_SCALAR(base, local, merged, max_process_count);
+    MERGE_SCALAR(base, local, merged, max_process_used_no_wait_enable);
     MERGE_SCALAR(base, local, merged, max_requests_per_process);
     MERGE_SCALAR(base, local, merged, output_buffersize);
     MERGE_SCALAR(base, local, merged, max_class_process_count);
@@ -466,6 +468,7 @@ const char *set_max_process(cmd_parms * cmd, void *dummy, const char *arg)
     }
 
     config->max_process_count = atol(arg);
+    config->max_process_count_set = 1;
     return NULL;
 }
 
@@ -482,6 +485,7 @@ const char *set_max_process_used_no_wait_enable(cmd_parms * cmd, void *dummy,
     }
 
     config->max_process_used_no_wait_enable = atol(arg);
+    config->max_process_used_no_wait_enable_set = 1;
     return NULL;
 }
 
