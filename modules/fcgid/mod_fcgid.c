@@ -776,7 +776,7 @@ static const command_rec fcgid_cmds[] = {
                   "Connect timeout to fastcgi server"),
     AP_INIT_TAKE1("FcgidMaxProcesses", set_max_process, NULL, RSRC_CONF,
                   "Max total process count"),
-    AP_INIT_TAKE1("FcgidMaxProcessesUsedNoWait",
+    AP_INIT_FLAG("FcgidMaxProcessesUsedNoWait",
                   set_max_process_used_no_wait_enable,
                   NULL, RSRC_CONF,
                   "Immediate HTTP error 503 if the max total process count is reached"),

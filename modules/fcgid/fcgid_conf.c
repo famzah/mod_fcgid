@@ -473,7 +473,7 @@ const char *set_max_process(cmd_parms * cmd, void *dummy, const char *arg)
 }
 
 const char *set_max_process_used_no_wait_enable(cmd_parms * cmd, void *dummy,
-                                        const char *arg)
+                                        int arg)
 {
     server_rec *s = cmd->server;
     fcgid_server_conf *config =
@@ -484,7 +484,7 @@ const char *set_max_process_used_no_wait_enable(cmd_parms * cmd, void *dummy,
         return err;
     }
 
-    config->max_process_used_no_wait_enable = atol(arg);
+    config->max_process_used_no_wait_enable = arg;
     config->max_process_used_no_wait_enable_set = 1;
     return NULL;
 }
