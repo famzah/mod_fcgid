@@ -162,7 +162,7 @@ register_termination(server_rec * main_server, fcgid_procnode * procnode)
      *
      * Those functions are scan_errorlist() and scan_idlelist_zombie().
      */
-    //assert_proctable_count(main_server);
+    /*assert_proctable_count(main_server);*/
 }
 
 void register_spawn(server_rec * main_server, fcgid_procnode * procnode)
@@ -171,7 +171,7 @@ void register_spawn(server_rec * main_server, fcgid_procnode * procnode)
 
     g_total_process++;
 
-    // assert now since the procnode is already linked to the "idle" list
+    /* assert now since the procnode is already linked to the "idle" list */
     assert_proctable_count(main_server);
 }
 

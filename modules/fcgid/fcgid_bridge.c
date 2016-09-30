@@ -52,7 +52,7 @@ static fcgid_procnode *apply_free_procnode(request_rec *r,
     previous_node = proctable_get_idle_list();
     busy_list_header = proctable_get_busy_list();
 
-    *reached_global_limit = 0; // false
+    *reached_global_limit = 0; /* false */
 
     proctable_lock(r);
     current_node = &proc_table[previous_node->next_index];
@@ -96,7 +96,7 @@ static fcgid_procnode *apply_free_procnode(request_rec *r,
                           "early skip of the spawn request because "
                           "FcgidMaxProcessesUsedNoWait is enabled",
                           cmdline, g_total_process, sconf->max_process_count);
-            *reached_global_limit = 1; // true
+            *reached_global_limit = 1; /* true */
         } else {
             ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r,
                           "mod_fcgid: apply_free_procnode(): '%s' failed to find a free slot; "

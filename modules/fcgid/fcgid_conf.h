@@ -84,9 +84,9 @@ typedef struct {
      * scalar values have corresponding _set field to aid merging
      */
     apr_table_t *default_init_env;
-    int max_process_count; // "global only" but we use its main_server value in a "request_rec"
+    int max_process_count; /* "global only" but we use its main_server value in a "request_rec" */
     int max_process_count_set;
-    int max_process_used_no_wait_enable; // "global only" but we use its main_server value in a "request_rec"
+    int max_process_used_no_wait_enable; /* "global only" but we use its main_server value in a "request_rec" */
     int max_process_used_no_wait_enable_set;
     int ipc_comm_timeout;
     int ipc_comm_timeout_set;
