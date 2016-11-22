@@ -212,7 +212,7 @@ const char *set_spawnscore_uplimit(cmd_parms * cmd, void *dummy,
 const char *set_max_process(cmd_parms * cmd, void *dummy, const char *arg);
 
 const char *set_max_process_used_no_wait_enable(cmd_parms * cmd, void *dummy,
-                                        const char *arg);
+                                        int arg);
 
 const char *set_max_class_process(cmd_parms * cmd, void *dummy,
                                   const char *arg);
