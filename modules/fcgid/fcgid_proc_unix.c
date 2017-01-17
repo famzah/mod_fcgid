@@ -754,22 +754,37 @@ static apr_status_t writev_it_all(fcgid_ipc *ipc_handle,
     return APR_SUCCESS;
 }
 
+void destroy_vec_buckets(apr_bucket *vec_buckets[], int nvec) {
+    int i;
+
+    for (i = 0; i < nvec; ++i) {
+        apr_bucket_destroy(vec_buckets[i]);
+    }
+}
+
+/* Send all data from *output_brigade to the *ipc_handle.
+ *
+ * During the processing, all buckets are permanently
+ * deleted from *output_brigade.
+ */
 #define FCGID_VEC_COUNT 8
 apr_status_t proc_write_ipc(fcgid_ipc *ipc_handle,
                             apr_bucket_brigade *output_brigade)
 {
     apr_status_t rv;
     struct iovec vec[FCGID_VEC_COUNT];
+    apr_bucket *vec_buckets[FCGID_VEC_COUNT];
     int nvec = 0;
     apr_bucket *e;
 
-    for (e = APR_BRIGADE_FIRST(output_brigade);
-         e != APR_BRIGADE_SENTINEL(output_brigade);
-         e = APR_BUCKET_NEXT(e)) {
+    while ((e = APR_BRIGADE_FIRST(output_brigade)) != 
+           APR_BRIGADE_SENTINEL(output_brigade)) {
+
         apr_size_t len;
         const char* base;
 
         if (APR_BUCKET_IS_METADATA(e)) {
+            apr_bucket_delete(e); /* bucket remove + destroy */
             continue;
         }
 
@@ -782,12 +797,17 @@ apr_status_t proc_write_ipc(fcgid_ipc *ipc_handle,
 
         vec[nvec].iov_len = len;
         vec[nvec].iov_base = (char*) base;
+
+        APR_BUCKET_REMOVE(e); /* We will destroy once we use the data */
+        vec_buckets[nvec] = e;
+
         if (nvec == (FCGID_VEC_COUNT - 1)) {
             /* It's time to write now */
             if ((rv =
                  writev_it_all(ipc_handle, vec,
                                FCGID_VEC_COUNT)) != APR_SUCCESS)
                 return rv;
+            destroy_vec_buckets(vec_buckets, FCGID_VEC_COUNT);
             nvec = 0;
         }
         else
@@ -798,6 +818,7 @@ apr_status_t proc_write_ipc(fcgid_ipc *ipc_handle,
     if (nvec != 0) {
         if ((rv = writev_it_all(ipc_handle, vec, nvec)) != APR_SUCCESS)
             return rv;
+        destroy_vec_buckets(vec_buckets, nvec);
     }
 
     return APR_SUCCESS;
