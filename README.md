@@ -12,9 +12,9 @@ The motivation is that the current behavior to queue up new pending requests dif
 # FcgidMaxProcessesUsedNoWait
 This directive controls the server behavior when the maximum number of active FastCGI application processes FcgidMaxProcesses is reached.
 
-If FcgidMaxProcessesUsedNoWait is set to "Off", then new requests wait in a queue with a timeout to get an idle process slot. Eventually after some waiting those requests either succeed in getting served, or fail with an HTTP 503 Service Unavailable error.
+If `FcgidMaxProcessesUsedNoWait` is set to "Off", then new requests wait in a queue with a timeout to get an idle process slot. Eventually after some waiting those requests either succeed in getting served, or fail with an HTTP 503 Service Unavailable error.
 
-If FcgidMaxProcessesUsedNoWait is set to "On", then an HTTP 503 Service Unavailable error is immediately returned for new requests when all FastCGI application processes are active in servicing other requests.
+If `FcgidMaxProcessesUsedNoWait` is set to "On", then an HTTP 503 Service Unavailable error is immediately returned for new requests when all FastCGI application processes are active in servicing other requests.
 
 # Upstream commit
 I tried to merge this upstream several times to no avail:
